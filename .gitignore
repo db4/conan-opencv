@@ -1,2 +1,7 @@
-build/
-__pycache__
+.vscode
+build
+package
+*.pyc
+conanbuildinfo.cmake
+conanbuildinfo.txt
+conaninfo.txt
