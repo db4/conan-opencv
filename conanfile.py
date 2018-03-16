@@ -226,7 +226,13 @@ conan_basic_setup()""")
 
         cmake_options["CMAKE_INSTALL_PREFIX"] = "install"
         cmake.configure(defs=cmake_options, source_folder="opencv")
-        cmake.build(target="install")
+
+        if "Visual Studio" in cmake.command_line:
+            # Make CI logs manageable
+            args = ["--", "/verbosity:minimal"]
+        else:
+            args = []
+        cmake.build(target="install", args=args)
 
     def package(self):
         self.copy(pattern="*", src="install", keep_path=True, symlinks=True)
