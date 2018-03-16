@@ -1,12 +1,10 @@
-from conans import ConanFile, CMake
+from conans import ConanFile, CMake, tools, RunEnvironment
 import os
 
-class MyTestConan(ConanFile):
+class OpenCVTestConan(ConanFile):
+    version = "0.1"
     settings = "os", "compiler", "build_type", "arch"
-    generators = "cmake", "txt"
-
-    def imports(self):
-          self.copy("*.dll", dst="bin", src="bin")
+    generators = "cmake"
 
     def build(self):
         cmake = CMake(self)
@@ -14,4 +12,12 @@ class MyTestConan(ConanFile):
         cmake.build()
 
     def test(self):
-        self.run(os.path.join(".","bin", "mytest"))
+        if not tools.cross_building(self.settings):
+            env_build = RunEnvironment(self)
+            with tools.environment_append(env_build.vars):
+                os.chdir("bin")
+                if self.settings.os != "Windows":
+                    # Work around OSX security restrictions
+                    self.run("DYLD_LIBRARY_PATH=%s ./mytest" % os.environ['DYLD_LIBRARY_PATH'])
+                else:
+                    self.run("mytest")

@@ -1,6 +1,7 @@
 from conans import ConanFile, CMake, tools
 import os
 import json
+import stat
 
 CONAN_REPO = "https://github.com/db4/conan-opencv"
 OPENCV_REPO = "https://github.com/opencv/opencv.git"
@@ -107,13 +108,11 @@ class OpenCVConan(ConanFile):
         cmake.build(target="install")
 
     def package(self):
+        self.copy(pattern="*", src="install", keep_path=True, symlinks=True)
         # LICENSE file is read-only so conan would raise an exception during packaging
-        self.copy(pattern="*", src="install",
-                  excludes="LICENSE", keep_path=True)
-        # The following is needed to import binaries to consumer projects.
-        # They tend to expect "bin" location for binaries
-        self.copy(pattern="*.dll", dst="bin", src="install", keep_path=False)
-        self.copy(pattern="*.exe", dst="bin", src="install", keep_path=False)
+        license_path = os.path.join(self.package_folder, "LICENSE")
+        if os.path.exists(license_path):
+            os.chmod(license_path, stat.S_IWRITE)
 
         opencv_install_dir = os.path.join(self.build_folder, "install")
         with tools.pythonpath(self):
