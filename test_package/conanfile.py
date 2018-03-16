@@ -18,6 +18,6 @@ class OpenCVTestConan(ConanFile):
                 os.chdir("bin")
                 if self.settings.os != "Windows":
                     # Work around OSX security restrictions
-                    self.run("DYLD_LIBRARY_PATH=%s ./mytest" % os.environ['DYLD_LIBRARY_PATH'])
+                    self.run("DYLD_LIBRARY_PATH=%s ./mytest outputfile.yml.gz" % os.environ['DYLD_LIBRARY_PATH'])
                 else:
-                    self.run("mytest")
+                    self.run("mytest outputfile.yml.gz")
