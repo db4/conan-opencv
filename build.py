@@ -7,7 +7,7 @@ def main():
     Main function.
     """
 
-    builder = ConanMultiPackager()
+    builder = ConanMultiPackager(args="--build missing")
     builder.add_common_builds(shared_option_name="OpenCV:shared", pure_c=False)
     filtered_builds = []
     for settings, options, env_vars, build_requires in builder.builds:
@@ -18,6 +18,9 @@ def main():
                 opts = dict(options)
                 opts['OpenCV:with_ipp'] = with_ipp_tbb
                 opts['OpenCV:with_tbb'] = with_ipp_tbb
+                if platform.system() != "Windows" and opts['OpenCV:shared']:
+                    # jasper static lib is build without -fPIC
+                    opts['jasper:shared'] = True
                 filtered_builds.append([settings, opts, env_vars, build_requires])
     builder.builds = filtered_builds
     builder.run()
