@@ -211,8 +211,10 @@ class OpenCVConan(ConanFile):
                 if pkg in OPENCV_3RDPARTY_PKG:
                     cmake_options[opt_opencv] = False
 
-        # already set by CMake helper
-        # cmake_options["BUILD_SHARED_LIBS"] = self.options.shared
+        if self.options.with_tbb != "False" and self.settings.compiler != "Visual Studio":
+            # work around OpenCV bug: TBB is incompatible with
+            # precompiled headers in Linux build
+            cmake_options["ENABLE_PRECOMPILED_HEADERS"] = False
         if "fPIC" in self.options:
             cmake_options["ENABLE_PIC"] = self.options.fPIC
 
