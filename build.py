@@ -12,7 +12,7 @@ def main():
     filtered_builds = []
     for settings, options, env_vars, build_requires in builder.builds:
         if platform.system() == "Windows" or tools.detected_architecture() == settings['arch']:
-            # x86/x64 cross-compilation fails on Linux (wrong IPP lib is downloaded)
+            # x86/x64 cross-compilation is supported on Windows only
             with_ipp_tbb_list = [True] if options['OpenCV:shared'] else [True, False]
             for with_ipp_tbb in with_ipp_tbb_list:
                 opts = dict(options)

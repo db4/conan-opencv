@@ -185,14 +185,16 @@ class OpenCVConan(ConanFile):
     def source(self):
         self.run("git clone " + OPENCV_REPO)
         self.run("cd opencv && git checkout " + OPENCV_BRANCH)
-        tools.replace_in_file("opencv/CMakeLists.txt", "project(OpenCV CXX C)",
-                              """project(OpenCV CXX C)
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup()""")
 
     def build(self):
         cmake = CMake(self)
         cmake_options = {}
+
+        cmake_options["CMAKE_INCLUDE_PATH"] = ";".join(
+            self.deps_cpp_info.include_paths)
+        cmake_options["CMAKE_LIBRARY_PATH"] = ";".join(
+            self.deps_cpp_info.lib_paths)
+
         for opt in OPENCV_BUILD_OPTIONS:
             opt_name = opt[0]
             if opt_name.startswith("build_opencv_"):
