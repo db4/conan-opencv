@@ -270,3 +270,5 @@ class OpenCVConan(ConanFile):
         self.cpp_info.libdirs = cpp_info["libdirs"]
         self.cpp_info.libs = cpp_info["libs"]
         self.cpp_info.bindirs.extend(cpp_info["bindirs"])
+        self.env_info.path.extend(
+            [os.path.join(self.package_folder, bin_dir) for bin_dir in cpp_info["bindirs"]])
