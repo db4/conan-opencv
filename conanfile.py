@@ -8,7 +8,7 @@ OPENCV_REPO = "https://github.com/opencv/opencv.git"
 OPENCV_VERSION = "3.4.0"
 OPENCV_BRANCH = "tags/" + OPENCV_VERSION
 
-OPENCV_3RDPARTY_PKG = {
+OPENCV_CONAN_PKG = {
     # name, conan package, optional attribute list
     "jasper": ("jasper/2.0.14@conan/stable",),
     "jpeg": ("libjpeg/9b@bincrafters/stable",),
@@ -139,8 +139,13 @@ OPENCV_BUILD_OPTIONS = [
     ("with_ximea", "bool")
 ]
 
-OPENCV_BUILD_OPTIONS_FILTERED = [opt for opt in OPENCV_BUILD_OPTIONS if (not opt[0].startswith(
-    "build_")) or (not opt[0].split("_", 1)[1] in OPENCV_3RDPARTY_PKG)]
+# with_<pkg> options for conan-provided packages
+OPTIONS_CONAN_PKG = [opt for opt in OPENCV_BUILD_OPTIONS if (opt[0].startswith(
+    "with_")) and (opt[0].split("_", 1)[1] in OPENCV_CONAN_PKG)]
+
+# Other options except options for conan-provided packages
+OPTIONS_FILTERED = [opt for opt in OPENCV_BUILD_OPTIONS if (
+    not opt[0].split("_", 1)[1] in OPENCV_CONAN_PKG)]
 
 
 class OpenCVConan(ConanFile):
@@ -151,11 +156,13 @@ class OpenCVConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
 
     default_options = ("shared=False", "fPIC=True") + \
+        tuple(["{0}={1}".format(opt[0], "True" if len(opt) < 3 else opt[2])
+               for opt in OPTIONS_CONAN_PKG]) + \
         tuple(["{0}={1}".format(opt[0], "" if len(opt) < 3 else opt[2])
-               for opt in OPENCV_BUILD_OPTIONS_FILTERED])
+               for opt in OPTIONS_FILTERED])
 
-    options = {opt[0]: [False, True, ""]
-               for opt in OPENCV_BUILD_OPTIONS_FILTERED}
+    options = dict([(opt[0], [False, True]) for opt in OPTIONS_CONAN_PKG] +
+                   [(opt[0], [False, True, ""]) for opt in OPTIONS_FILTERED])
     options["shared"] = [False, True]
     options["fPIC"] = [False, True]
 
@@ -167,10 +174,10 @@ class OpenCVConan(ConanFile):
     requires = "cmake_config_tools/0.0.1@dbely/testing"
 
     def requirements(self):
-        for lib in OPENCV_3RDPARTY_PKG:
+        for lib in OPENCV_CONAN_PKG:
             with_lib = "with_"+lib
-            if with_lib not in self.options or getattr(self.options, "with_"+lib) != False:
-                pkg_info = OPENCV_3RDPARTY_PKG[lib]
+            if with_lib not in self.options or getattr(self.options, with_lib) != False:
+                pkg_info = OPENCV_CONAN_PKG[lib]
                 pkg_ref = pkg_info[0]
                 pkg_name = pkg_ref.split("/")[0]
                 self.requires(pkg_ref)
@@ -204,11 +211,11 @@ class OpenCVConan(ConanFile):
                 opt_opencv = opt_name.upper()
             if opt_name in self.options:
                 value = getattr(self.options, opt_name)
-                if value != "":
+                if value == "False" or value == "True":
                     cmake_options[opt_opencv] = value
             elif opt_name.startswith("build_"):
                 pkg = opt_name.split("_", 1)[1]
-                if pkg in OPENCV_3RDPARTY_PKG:
+                if pkg in OPENCV_CONAN_PKG:
                     cmake_options[opt_opencv] = False
 
         if self.options.with_tbb != "False" and self.settings.compiler != "Visual Studio":
@@ -256,7 +263,7 @@ class OpenCVConan(ConanFile):
                     self, opencv_install_dir, "OpenCV", "share/OpenCV")
             # work around OpenCV problem (exclude external libs like tbb)
             cpp_info["libs"] = [lib for lib in cpp_info["libs"]
-                                if not lib in OPENCV_3RDPARTY_PKG]
+                                if not lib in OPENCV_CONAN_PKG]
             cpp_info["bindirs"] = [os.path.join(
                 os.path.dirname(cpp_info["libdirs"][0]), "bin")]
         cpp_info_json = os.path.join(self.package_folder, "cpp_info.json")
