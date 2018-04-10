@@ -48,16 +48,30 @@ matrix:
    include:
 
       - <<: *linux
-        env: CONAN_GCC_VERSIONS=5 CONAN_DOCKER_IMAGE=lasote/conangcc5
+        env: CONAN_BUILD_TYPES=Debug CONAN_GCC_VERSIONS=5 CONAN_DOCKER_IMAGE=lasote/conangcc5
       - <<: *linux
-        env: CONAN_GCC_VERSIONS=6 CONAN_DOCKER_IMAGE=lasote/conangcc6
+        env: CONAN_BUILD_TYPES=Release CONAN_GCC_VERSIONS=5 CONAN_DOCKER_IMAGE=lasote/conangcc5
+      - <<: *linux
+        env: CONAN_BUILD_TYPES=Debug CONAN_GCC_VERSIONS=6 CONAN_DOCKER_IMAGE=lasote/conangcc6
+      - <<: *linux
+        env: CONAN_BUILD_TYPES=Release CONAN_GCC_VERSIONS=6 CONAN_DOCKER_IMAGE=lasote/conangcc6
       - <<: *linux32
-        env: CONAN_GCC_VERSIONS=5 CONAN_DOCKER_IMAGE=lasote/conangcc5-i386
+        env: CONAN_BUILD_TYPES=Debug CONAN_GCC_VERSIONS=5 CONAN_DOCKER_IMAGE=lasote/conangcc5-i386
       - <<: *linux32
-        env: CONAN_GCC_VERSIONS=6 CONAN_DOCKER_IMAGE=lasote/conangcc6-i386
+        env: CONAN_BUILD_TYPES=Release CONAN_GCC_VERSIONS=5 CONAN_DOCKER_IMAGE=lasote/conangcc5-i386
+      - <<: *linux32
+        env: CONAN_BUILD_TYPES=Debug CONAN_GCC_VERSIONS=6 CONAN_DOCKER_IMAGE=lasote/conangcc6-i386
+      - <<: *linux32
+        env: CONAN_BUILD_TYPES=Release CONAN_GCC_VERSIONS=6 CONAN_DOCKER_IMAGE=lasote/conangcc6-i386
       - <<: *osx
         osx_image: xcode8.3
-        env: CONAN_APPLE_CLANG_VERSIONS=8.1
+        env: CONAN_BUILD_TYPES=Debug CONAN_APPLE_CLANG_VERSIONS=8.1
+      - <<: *osx
+        osx_image: xcode8.3
+        env: CONAN_BUILD_TYPES=Release CONAN_APPLE_CLANG_VERSIONS=8.1
       - <<: *osx
         osx_image: xcode9
-        env: CONAN_APPLE_CLANG_VERSIONS=9.0
+        env: CONAN_BUILD_TYPES=Debug CONAN_APPLE_CLANG_VERSIONS=9.0
+      - <<: *osx
+        osx_image: xcode9
+        env: CONAN_BUILD_TYPES=Release CONAN_APPLE_CLANG_VERSIONS=9.0
