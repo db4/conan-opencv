@@ -15,9 +15,35 @@ linux: &linux
    python: "3.6"
    services:
      - docker
+   install:
+     - chmod +x .travis/install.sh
+     - ./.travis/install.sh
+   script:
+     - chmod +x .travis/run.sh
+     - ./.travis/run.sh
+linux: &linux32
+   os: linux
+   sudo: required
+   language: python
+   python: "3.6"
+   services:
+     - docker
+   install:
+     - chmod +x .travis/install.sh
+     - linux32 --32bit ./.travis/install.sh
+   script:
+     - chmod +x .travis/run.sh
+     - linux32 --32bit ./.travis/run.sh
 osx: &osx
    os: osx
    language: generic
+   install:
+     - chmod +x .travis/install.sh
+     - ./.travis/install.sh
+   script:
+     - chmod +x .travis/run.sh
+     - ./.travis/run.sh
+
 matrix:
    include:
 
@@ -25,9 +51,9 @@ matrix:
         env: CONAN_GCC_VERSIONS=5 CONAN_DOCKER_IMAGE=lasote/conangcc5
       - <<: *linux
         env: CONAN_GCC_VERSIONS=6 CONAN_DOCKER_IMAGE=lasote/conangcc6
-      - <<: *linux
+      - <<: *linux32
         env: CONAN_GCC_VERSIONS=5 CONAN_DOCKER_IMAGE=lasote/conangcc5-i386
-      - <<: *linux
+      - <<: *linux32
         env: CONAN_GCC_VERSIONS=6 CONAN_DOCKER_IMAGE=lasote/conangcc6-i386
       - <<: *osx
         osx_image: xcode8.3
@@ -35,11 +61,3 @@ matrix:
       - <<: *osx
         osx_image: xcode9
         env: CONAN_APPLE_CLANG_VERSIONS=9.0
-
-install:
-  - chmod +x .travis/install.sh
-  - ./.travis/install.sh
-
-script:
-  - chmod +x .travis/run.sh
-  - ./.travis/run.sh
