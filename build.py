@@ -7,7 +7,7 @@ def main():
     Main function.
     """
 
-    builder = ConanMultiPackager(args="--build missing")
+    builder = ConanMultiPackager(build_policy="outdated")
     builder.add_common_builds(shared_option_name="OpenCV:shared", pure_c=False)
     filtered_builds = []
     for settings, options, env_vars, build_requires in builder.builds:
