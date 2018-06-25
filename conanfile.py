@@ -273,9 +273,22 @@ class OpenCVConan(ConanFile):
         cpp_info_json = os.path.join(self.package_folder, "cpp_info.json")
         cpp_info = json.loads(tools.load(cpp_info_json))
 
-        self.cpp_info.includedirs = cpp_info["includedirs"]
-        self.cpp_info.libdirs = cpp_info["libdirs"]
-        self.cpp_info.libs = cpp_info["libs"]
-        self.cpp_info.bindirs.extend(cpp_info["bindirs"])
-        self.env_info.path.extend(
-            [os.path.join(self.package_folder, bin_dir) for bin_dir in cpp_info["bindirs"]])
+        includedirs = cpp_info["includedirs"]
+        self.output.info("includedirs : " + ' '.join(includedirs))
+        self.cpp_info.includedirs = includedirs
+
+        libdirs = cpp_info["libdirs"]
+        self.output.info("libdirs : " + ' '.join(libdirs))
+        self.cpp_info.libdirs = libdirs
+
+        libs = cpp_info["libs"]
+        self.output.info("libs : " + ' '.join(libs))
+        self.cpp_info.libs = libs
+
+        bindirs = cpp_info["bindirs"]
+        self.output.info("bindirs : " + ' '.join(bindirs))
+        self.cpp_info.bindirs = bindirs
+
+        path = [os.path.join(self.package_folder, bin_dir) for bin_dir in cpp_info["bindirs"]]
+        self.output.info("Appending PATH env var with : " + os.sep.join(path))
+        self.env_info.path.extend(path)
