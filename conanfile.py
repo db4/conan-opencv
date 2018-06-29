@@ -176,7 +176,7 @@ class OpenCVConan(ConanFile):
     def requirements(self):
         for lib in OPENCV_CONAN_PKG:
             with_lib = "with_"+lib
-            if with_lib not in self.options or getattr(self.options, with_lib) != False:
+            if self.options.get_safe(with_lib) != False:
                 pkg_info = OPENCV_CONAN_PKG[lib]
                 pkg_ref = pkg_info[0]
                 pkg_name = pkg_ref.split("/")[0]
@@ -184,6 +184,12 @@ class OpenCVConan(ConanFile):
                 if len(pkg_info) > 1:
                     for (opt, value) in pkg_info[1]:
                         setattr(self.options[pkg_name], opt, value)
+                if self.options.get_safe("shared") or self.options.get_safe("fPIC"):
+                    if pkg_name == "jasper":
+                        # jasper does not have fPIC option yet and is compiled without fPIC
+                        self.options[pkg_name].shared = True
+                    elif self.options[pkg_name].fPIC is not None:
+                        self.options[pkg_name].fPIC = True
 
     def config_options(self):
         if self.settings.os == "Windows":
