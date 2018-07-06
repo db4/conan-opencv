@@ -4,9 +4,7 @@ import json
 import stat
 
 CONAN_REPO = "https://github.com/db4/conan-opencv"
-OPENCV_REPO = "https://github.com/opencv/opencv.git"
-OPENCV_VERSION = "3.4.0"
-OPENCV_BRANCH = "tags/" + OPENCV_VERSION
+OPENCV_REPO = "https://github.com/opencv/opencv.git -b {version}"
 
 OPENCV_CONAN_PKG = {
     # name, conan package, optional attribute list
@@ -152,7 +150,6 @@ class OpenCVConan(ConanFile):
     # Description must be very short for conan.io
     description = "OpenCV: Open Source Computer Vision Library."
     name = "OpenCV"
-    version = OPENCV_VERSION
     settings = "os", "compiler", "build_type", "arch"
 
     default_options = ("shared=False", "fPIC=True") + \
@@ -196,8 +193,7 @@ class OpenCVConan(ConanFile):
             self.options.remove("fPIC")
 
     def source(self):
-        self.run("git clone " + OPENCV_REPO)
-        self.run("cd opencv && git checkout " + OPENCV_BRANCH)
+        self.run("git clone " + OPENCV_REPO.format(version=self.version))
         tools.replace_in_file("opencv/CMakeLists.txt", "project(OpenCV CXX C)",
                               """project(OpenCV CXX C)
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
