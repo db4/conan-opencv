@@ -213,6 +213,19 @@ conan_set_libcxx()
         cmake = CMake(self)
         cmake_options = {}
 
+        # - we can't use conan_global_flags() above because conan code is injected AFTER project()
+        #   (overwise CMAKE_CXX_FLAGS are not set correctly), but it's too late for OpenCV to
+        #   correctly detect cross-compilation
+        # - we can't pass CMAKE_CXX_FLAGS via command line for Visual Studio as it clears various
+        #   defines set by cmake like /DWIN32. Without them OpenCV build would fail
+        #
+        # So here is a workaround that's not universal (gcc/Win32 would fail), but works for
+        # the most common cases (MSVC/Windows and gcc/Unix)
+
+        if tools.cross_building(self.settings) and self.settings.compiler != "Visual Studio":
+            cmake_options["CMAKE_C_FLAGS"] = cmake.definitions["CONAN_C_FLAGS"]
+            cmake_options["CMAKE_CXX_FLAGS"] = cmake.definitions["CONAN_CXX_FLAGS"]
+
         for opt in OPENCV_BUILD_OPTIONS:
             opt_name = opt[0]
             if opt_name.startswith("build_opencv_"):
