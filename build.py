@@ -1,7 +1,7 @@
 from conan.packager import ConanMultiPackager
 import os
 
-available_versions = ["3.4.0"]
+available_versions = ["3.1.0", "3.4.0"]
 
 
 def main():

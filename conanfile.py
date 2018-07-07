@@ -1,6 +1,7 @@
 from conans import ConanFile, CMake, tools
 import os
 import json
+import re
 import stat
 
 CONAN_REPO = "https://github.com/db4/conan-opencv"
@@ -168,7 +169,7 @@ class OpenCVConan(ConanFile):
     generators = "cmake"
     short_paths = True
     no_copy_source = True
-    build_requires = "cmake_config_tools/0.0.1@dbely/testing"
+    build_requires = "cmake_config_tools/0.0.2@dbely/testing"
 
     def requirements(self):
         for lib in OPENCV_CONAN_PKG:
@@ -281,10 +282,25 @@ conan_set_libcxx()
             else:
                 cpp_info = cmake_config_tools.cmake_find_package(
                     self, opencv_install_dir, "OpenCV", "share/OpenCV")
-            # work around OpenCV problems (exclude external libs like tbb
-            # and c++ lib that OpenCV adds explicitly)
-            cpp_info["libs"] = [lib for lib in cpp_info["libs"]
-                                if not lib in OPENCV_CONAN_PKG and lib != "stdc++"]
+            # Work around OpenCV problems (exclude external libs like tbb)
+            def check(lib):
+                for pkg in OPENCV_CONAN_PKG:
+                    if lib == pkg or lib == "-l" + pkg or \
+                       lib == pkg + ".lib" or lib == pkg + ".a":
+                        return False
+                return True
+            libs = [lib for lib in cpp_info["libs"] if check(lib)]
+            # *.so.x.y.z -> *.so
+            def convert(file):
+                m = re.match(r'(.*\.so)\..*', file)
+                if m is not None:
+                    return m.group(1)
+                else:
+                    return file
+            libs = [convert(lib) for lib in libs]
+            # Exclude c++ lib that OpenCV adds explicitly)
+            syslibs = [lib for lib in cpp_info["syslibs"] if lib != "stdc++"]
+            cpp_info["libs"] = libs + syslibs
             cpp_info["bindirs"] = [os.path.join(
                 os.path.dirname(cpp_info["libdirs"][0]), "bin")]
         cpp_info_json = os.path.join(self.package_folder, "cpp_info.json")
