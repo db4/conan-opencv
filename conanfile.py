@@ -325,7 +325,3 @@ conan_set_libcxx()
         bindirs = cpp_info["bindirs"]
         self.output.info("bindirs : " + ' '.join(bindirs))
         self.cpp_info.bindirs = bindirs
-
-        path = [os.path.join(self.package_folder, bin_dir) for bin_dir in cpp_info["bindirs"]]
-        self.output.info("Appending PATH env var with : " + os.sep.join(path))
-        self.env_info.path.extend(path)
