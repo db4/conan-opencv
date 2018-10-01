@@ -22,19 +22,6 @@ linux: &linux
    script:
      - chmod +x .travis/run.sh
      - ./.travis/run.sh
-linux: &linux32
-   os: linux
-   sudo: required
-   language: python
-   python: "3.6"
-   services:
-     - docker
-   install:
-     - chmod +x .travis/install.sh
-     - linux32 --32bit ./.travis/install.sh
-   script:
-     - chmod +x .travis/run.sh
-     - linux32 --32bit ./.travis/run.sh
 osx: &osx
    os: osx
    language: generic
@@ -64,22 +51,6 @@ matrix:
         env: CONAN_GCC_VERSIONS=6 CONAN_DOCKER_IMAGE=lasote/conangcc6 CONAN_CURRENT_PAGE=3
       - <<: *linux
         env: CONAN_GCC_VERSIONS=6 CONAN_DOCKER_IMAGE=lasote/conangcc6 CONAN_CURRENT_PAGE=4
-      - <<: *linux32
-        env: CONAN_GCC_VERSIONS=5 CONAN_DOCKER_IMAGE=lasote/conangcc5-i386 CONAN_CURRENT_PAGE=1
-      - <<: *linux32
-        env: CONAN_GCC_VERSIONS=5 CONAN_DOCKER_IMAGE=lasote/conangcc5-i386 CONAN_CURRENT_PAGE=2
-      - <<: *linux32
-        env: CONAN_GCC_VERSIONS=5 CONAN_DOCKER_IMAGE=lasote/conangcc5-i386 CONAN_CURRENT_PAGE=3
-      - <<: *linux32
-        env: CONAN_GCC_VERSIONS=5 CONAN_DOCKER_IMAGE=lasote/conangcc5-i386 CONAN_CURRENT_PAGE=4
-      - <<: *linux32
-        env: CONAN_GCC_VERSIONS=6 CONAN_DOCKER_IMAGE=lasote/conangcc6-i386 CONAN_CURRENT_PAGE=1
-      - <<: *linux32
-        env: CONAN_GCC_VERSIONS=6 CONAN_DOCKER_IMAGE=lasote/conangcc6-i386 CONAN_CURRENT_PAGE=2
-      - <<: *linux32
-        env: CONAN_GCC_VERSIONS=6 CONAN_DOCKER_IMAGE=lasote/conangcc6-i386 CONAN_CURRENT_PAGE=3
-      - <<: *linux32
-        env: CONAN_GCC_VERSIONS=6 CONAN_DOCKER_IMAGE=lasote/conangcc6-i386 CONAN_CURRENT_PAGE=4
       # - <<: *osx
       #   osx_image: xcode8.3
       #   env: CONAN_APPLE_CLANG_VERSIONS=8.1 CONAN_CURRENT_PAGE=1

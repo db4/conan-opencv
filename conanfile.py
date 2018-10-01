@@ -1,12 +1,11 @@
 from conans import ConanFile, CMake, tools
 import os
 import json
+import re
 import stat
 
 CONAN_REPO = "https://github.com/db4/conan-opencv"
-OPENCV_REPO = "https://github.com/opencv/opencv.git"
-OPENCV_VERSION = "3.4.0"
-OPENCV_BRANCH = "tags/" + OPENCV_VERSION
+OPENCV_REPO = "https://github.com/opencv/opencv.git -b {version}"
 
 OPENCV_CONAN_PKG = {
     # name, conan package, optional attribute list
@@ -152,7 +151,6 @@ class OpenCVConan(ConanFile):
     # Description must be very short for conan.io
     description = "OpenCV: Open Source Computer Vision Library."
     name = "OpenCV"
-    version = OPENCV_VERSION
     settings = "os", "compiler", "build_type", "arch"
 
     default_options = ("shared=False", "fPIC=True") + \
@@ -171,12 +169,12 @@ class OpenCVConan(ConanFile):
     generators = "cmake"
     short_paths = True
     no_copy_source = True
-    requires = "cmake_config_tools/0.0.1@dbely/testing"
+    build_requires = "cmake_config_tools/0.0.2@dbely/testing"
 
     def requirements(self):
         for lib in OPENCV_CONAN_PKG:
             with_lib = "with_"+lib
-            if with_lib not in self.options or getattr(self.options, with_lib) != False:
+            if self.options.get_safe(with_lib) != False:
                 pkg_info = OPENCV_CONAN_PKG[lib]
                 pkg_ref = pkg_info[0]
                 pkg_name = pkg_ref.split("/")[0]
@@ -184,23 +182,46 @@ class OpenCVConan(ConanFile):
                 if len(pkg_info) > 1:
                     for (opt, value) in pkg_info[1]:
                         setattr(self.options[pkg_name], opt, value)
+                if self.options.get_safe("shared") or self.options.get_safe("fPIC"):
+                    if pkg_name == "jasper":
+                        # jasper does not have fPIC option yet and is compiled without fPIC
+                        self.options[pkg_name].shared = True
+                    elif self.options[pkg_name].fPIC is not None:
+                        self.options[pkg_name].fPIC = True
 
     def config_options(self):
         if self.settings.os == "Windows":
             self.options.remove("fPIC")
 
     def source(self):
-        self.run("git clone " + OPENCV_REPO)
-        self.run("cd opencv && git checkout " + OPENCV_BRANCH)
+        self.run("git clone " + OPENCV_REPO.format(version=self.version))
+        tools.replace_in_file("opencv/CMakeLists.txt", "project(OpenCV CXX C)",
+                              """project(OpenCV CXX C)
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+
+# Don't call conan_basic_setup() as it affects TBB (-I<tbb_dir> is forced while OpenCV needs -isystem <tbb_dir>)
+#conan_basic_setup()
+
+conan_set_find_library_paths()
+conan_set_libcxx()
+""")
 
     def build(self):
         cmake = CMake(self)
         cmake_options = {}
 
-        cmake_options["CMAKE_INCLUDE_PATH"] = ";".join(
-            self.deps_cpp_info.include_paths)
-        cmake_options["CMAKE_LIBRARY_PATH"] = ";".join(
-            self.deps_cpp_info.lib_paths)
+        # - we can't use conan_global_flags() above because conan code is injected AFTER project()
+        #   (overwise CMAKE_CXX_FLAGS are not set correctly), but it's too late for OpenCV to
+        #   correctly detect cross-compilation
+        # - we can't pass CMAKE_CXX_FLAGS via command line for Visual Studio as it clears various
+        #   defines set by cmake like /DWIN32. Without them OpenCV build would fail
+        #
+        # So here is a workaround that's not universal (gcc/Win32 would fail), but works for
+        # the most common cases (MSVC/Windows and gcc/Unix)
+
+        if tools.cross_building(self.settings) and self.settings.compiler != "Visual Studio":
+            cmake_options["CMAKE_C_FLAGS"] = cmake.definitions["CONAN_C_FLAGS"]
+            cmake_options["CMAKE_CXX_FLAGS"] = cmake.definitions["CONAN_CXX_FLAGS"]
 
         for opt in OPENCV_BUILD_OPTIONS:
             opt_name = opt[0]
@@ -261,9 +282,25 @@ class OpenCVConan(ConanFile):
             else:
                 cpp_info = cmake_config_tools.cmake_find_package(
                     self, opencv_install_dir, "OpenCV", "share/OpenCV")
-            # work around OpenCV problem (exclude external libs like tbb)
-            cpp_info["libs"] = [lib for lib in cpp_info["libs"]
-                                if not lib in OPENCV_CONAN_PKG]
+            # Work around OpenCV problems (exclude external libs like tbb)
+            def check(lib):
+                for pkg in OPENCV_CONAN_PKG:
+                    if lib == pkg or lib == "-l" + pkg or \
+                       lib == pkg + ".lib" or lib == pkg + ".a":
+                        return False
+                return True
+            libs = [lib for lib in cpp_info["libs"] if check(lib)]
+            # *.so.x.y.z -> *.so
+            def convert(file):
+                m = re.match(r'(.*\.so)\..*', file)
+                if m is not None:
+                    return m.group(1)
+                else:
+                    return file
+            libs = [convert(lib) for lib in libs]
+            # Exclude c++ lib that OpenCV adds explicitly)
+            syslibs = [lib for lib in cpp_info["syslibs"] if lib != "stdc++"]
+            cpp_info["libs"] = libs + syslibs
             cpp_info["bindirs"] = [os.path.join(
                 os.path.dirname(cpp_info["libdirs"][0]), "bin")]
         cpp_info_json = os.path.join(self.package_folder, "cpp_info.json")
@@ -273,9 +310,18 @@ class OpenCVConan(ConanFile):
         cpp_info_json = os.path.join(self.package_folder, "cpp_info.json")
         cpp_info = json.loads(tools.load(cpp_info_json))
 
-        self.cpp_info.includedirs = cpp_info["includedirs"]
-        self.cpp_info.libdirs = cpp_info["libdirs"]
-        self.cpp_info.libs = cpp_info["libs"]
-        self.cpp_info.bindirs.extend(cpp_info["bindirs"])
-        self.env_info.path.extend(
-            [os.path.join(self.package_folder, bin_dir) for bin_dir in cpp_info["bindirs"]])
+        includedirs = cpp_info["includedirs"]
+        self.output.info("includedirs : " + ' '.join(includedirs))
+        self.cpp_info.includedirs = includedirs
+
+        libdirs = cpp_info["libdirs"]
+        self.output.info("libdirs : " + ' '.join(libdirs))
+        self.cpp_info.libdirs = libdirs
+
+        libs = cpp_info["libs"]
+        self.output.info("libs : " + ' '.join(libs))
+        self.cpp_info.libs = libs
+
+        bindirs = cpp_info["bindirs"]
+        self.output.info("bindirs : " + ' '.join(bindirs))
+        self.cpp_info.bindirs = bindirs
