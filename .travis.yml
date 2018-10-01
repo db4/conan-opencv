@@ -7,7 +7,7 @@ env:
      - CONAN_REMOTES: "https://api.bintray.com/conan/bincrafters/public-conan,https://api.bintray.com/conan/conan-community/conan"
      - CONAN_UPLOAD: "https://api.bintray.com/conan/dbely/conan"
      - CONAN_STABLE_BRANCH_PATTERN: "release/*"
-     - CONAN_TOTAL_PAGES: 4
+     - CONAN_TOTAL_PAGES: 8
 
 linux: &linux
    os: linux
@@ -44,6 +44,15 @@ matrix:
       - <<: *linux
         env: CONAN_GCC_VERSIONS=5 CONAN_DOCKER_IMAGE=lasote/conangcc5 CONAN_CURRENT_PAGE=4
       - <<: *linux
+        env: CONAN_GCC_VERSIONS=5 CONAN_DOCKER_IMAGE=lasote/conangcc5 CONAN_CURRENT_PAGE=5
+      - <<: *linux
+        env: CONAN_GCC_VERSIONS=5 CONAN_DOCKER_IMAGE=lasote/conangcc5 CONAN_CURRENT_PAGE=6
+      - <<: *linux
+        env: CONAN_GCC_VERSIONS=5 CONAN_DOCKER_IMAGE=lasote/conangcc5 CONAN_CURRENT_PAGE=7
+      - <<: *linux
+        env: CONAN_GCC_VERSIONS=5 CONAN_DOCKER_IMAGE=lasote/conangcc5 CONAN_CURRENT_PAGE=8
+
+      - <<: *linux
         env: CONAN_GCC_VERSIONS=6 CONAN_DOCKER_IMAGE=lasote/conangcc6 CONAN_CURRENT_PAGE=1
       - <<: *linux
         env: CONAN_GCC_VERSIONS=6 CONAN_DOCKER_IMAGE=lasote/conangcc6 CONAN_CURRENT_PAGE=2
@@ -51,6 +60,15 @@ matrix:
         env: CONAN_GCC_VERSIONS=6 CONAN_DOCKER_IMAGE=lasote/conangcc6 CONAN_CURRENT_PAGE=3
       - <<: *linux
         env: CONAN_GCC_VERSIONS=6 CONAN_DOCKER_IMAGE=lasote/conangcc6 CONAN_CURRENT_PAGE=4
+      - <<: *linux
+        env: CONAN_GCC_VERSIONS=6 CONAN_DOCKER_IMAGE=lasote/conangcc6 CONAN_CURRENT_PAGE=5
+      - <<: *linux
+        env: CONAN_GCC_VERSIONS=6 CONAN_DOCKER_IMAGE=lasote/conangcc6 CONAN_CURRENT_PAGE=6
+      - <<: *linux
+        env: CONAN_GCC_VERSIONS=6 CONAN_DOCKER_IMAGE=lasote/conangcc6 CONAN_CURRENT_PAGE=7
+      - <<: *linux
+        env: CONAN_GCC_VERSIONS=6 CONAN_DOCKER_IMAGE=lasote/conangcc6 CONAN_CURRENT_PAGE=8
+
       # - <<: *osx
       #   osx_image: xcode8.3
       #   env: CONAN_APPLE_CLANG_VERSIONS=8.1 CONAN_CURRENT_PAGE=1
@@ -64,6 +82,19 @@ matrix:
       #   osx_image: xcode8.3
       #   env: CONAN_APPLE_CLANG_VERSIONS=8.1 CONAN_CURRENT_PAGE=4
       # - <<: *osx
+      #   osx_image: xcode8.3
+      #   env: CONAN_APPLE_CLANG_VERSIONS=8.1 CONAN_CURRENT_PAGE=5
+      # - <<: *osx
+      #   osx_image: xcode8.3
+      #   env: CONAN_APPLE_CLANG_VERSIONS=8.1 CONAN_CURRENT_PAGE=6
+      # - <<: *osx
+      #   osx_image: xcode8.3
+      #   env: CONAN_APPLE_CLANG_VERSIONS=8.1 CONAN_CURRENT_PAGE=7
+      # - <<: *osx
+      #   osx_image: xcode8.3
+      #   env: CONAN_APPLE_CLANG_VERSIONS=8.1 CONAN_CURRENT_PAGE=8
+
+      # - <<: *osx
       #   osx_image: xcode9
       #   env: CONAN_APPLE_CLANG_VERSIONS=9.0 CONAN_CURRENT_PAGE=1
       # - <<: *osx
@@ -75,3 +106,15 @@ matrix:
       # - <<: *osx
       #   osx_image: xcode9
       #   env: CONAN_APPLE_CLANG_VERSIONS=9.0 CONAN_CURRENT_PAGE=4
+      # - <<: *osx
+      #   osx_image: xcode9
+      #   env: CONAN_APPLE_CLANG_VERSIONS=9.0 CONAN_CURRENT_PAGE=5
+      # - <<: *osx
+      #   osx_image: xcode9
+      #   env: CONAN_APPLE_CLANG_VERSIONS=9.0 CONAN_CURRENT_PAGE=6
+      # - <<: *osx
+      #   osx_image: xcode9
+      #   env: CONAN_APPLE_CLANG_VERSIONS=9.0 CONAN_CURRENT_PAGE=7
+      # - <<: *osx
+      #   osx_image: xcode9
+      #   env: CONAN_APPLE_CLANG_VERSIONS=9.0 CONAN_CURRENT_PAGE=8
